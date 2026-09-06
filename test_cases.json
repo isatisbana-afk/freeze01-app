@@ -1,0 +1,21 @@
+{
+  "test_suite": "K-CORE Payroll Validation",
+  "cases": [
+    {
+      "role": "S01",
+      "description": "تست پایه کارگاه عادی",
+      "base_salary": 10000000,
+      "env_factors": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+      "role_factor": 1.0,
+      "expected_net": 10000000
+    },
+    {
+      "role": "S05",
+      "description": "تست با ضرایب محیطی و نقش",
+      "base_salary": 12000000,
+      "env_factors": [1.1, 1.05, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+      "role_factor": 1.25,
+      "expected_net": 17325000
+    }
+  ]
+}
