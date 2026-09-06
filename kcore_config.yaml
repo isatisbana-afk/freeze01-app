@@ -1,0 +1,24 @@
+metadata:
+  system_identity: "K-CORE Payroll Architecture"
+  module_name: "freeze1-app"
+  version: "1.0.0"
+  status: "Standalone Engine"
+  
+  author_profile:
+    full_name: "حسین کلانتری"
+    designations:
+      - "طراح"
+      - "مجری"
+      - "ناظر ارشد"
+    affiliations:
+      - "عضو اولین هیئت مدیره سرپرستان کارگاه ساختمانی یزد"
+      
+  rights_and_governance:
+    intellectual_property: "انحصاری - حسین کلانتری"
+    update_authority: "حسین کلانتری"
+    annual_variables_update: "RESTRICTED_TO_AUTHOR"
+
+security:
+  integrity_guard:
+    signature_required: true
+    protection_level: "Author-Only Write Access"
