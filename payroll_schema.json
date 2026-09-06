@@ -1,0 +1,17 @@
+{
+  "schema_id": "kcore_payroll_v1",
+  "calculation_type": "Linear_Direct",
+  "formula_expression": "S_i = B_i * n1 * n2 * n3 * n4 * n5 * n6 * n7 * n8 * nP",
+  "supported_roles": [
+    "S01", "S02", "S03", "S04", "S05", "S06",
+    "S07", "S08", "S09", "S10", "S11", "S12"
+  ],
+  "inputs": {
+    "base_salary": "B_i",
+    "environmental_factors": ["n1", "n2", "n3", "n4", "n5", "n6", "n7", "n8"],
+    "role_factor": "nP"
+  },
+  "outputs": {
+    "net_payable": "S_i"
+  }
+}
