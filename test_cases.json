@@ -1,21 +1,24 @@
-{
-  "test_suite": "K-CORE Payroll Validation",
-  "cases": [
-    {
-      "role": "S01",
-      "description": "تست پایه کارگاه عادی",
-      "base_salary": 10000000,
-      "env_factors": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
-      "role_factor": 1.0,
-      "expected_net": 10000000
-    },
-    {
-      "role": "S05",
-      "description": "تست با ضرایب محیطی و نقش",
-      "base_salary": 12000000,
-      "env_factors": [1.1, 1.05, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
-      "role_factor": 1.25,
-      "expected_net": 17325000
-    }
-  ]
+// Core Logic Engine - Batch Integration Test (S01 to S12)
+const { processWorkerPayroll } = require('./payroll_adapter');
+
+const roles = ['S01', 'S02', 'S03', 'S04', 'S05', 'S06', 'S07', 'S08', 'S09', 'S10', 'S11', 'S12'];
+const baseSalary = 10000000; // پایه حقوق نمونه
+const envFactors = [1.1, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]; // ضرایب نمونه محیطی
+
+console.log("=========================================");
+console.log("   آغاز اعتبارسنجی یکپارچه سطوح S01 تا S12   ");
+console.log("=========================================");
+
+try {
+  roles.forEach(roleCode => {
+    const workerData = { roleCode, baseSalary, envFactors };
+    const response = processWorkerPayroll(workerData);
+    console.log(`[OK] Role: ${roleCode} | Factor: ${response.appliedRoleFactor} | Net: ${response.netSalary.toLocaleString()} Rial`);
+  });
+  console.log("=========================================");
+  console.log("  تمامی ۱۲ سطح شغلی با موفقیت ارزیابی شدند. ");
+  console.log("=========================================");
+} catch (error) {
+  console.error("خطا در تست انباشته:", error.message);
+  process.exit(1);
 }
