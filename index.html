@@ -2,36 +2,151 @@
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>محاسبه حقوق مدیریت کارگاه</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>سامانه محاسبه حقوق K-CORE / M-100</title>
+    <style>
+        body {
+            font-family: Tahoma, Arial, sans-serif;
+            background-color: #f4f6f9;
+            margin: 0;
+            padding: 15px;
+            direction: rtl;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        h2 {
+            text-align: center;
+            color: #2c3e50;
+            font-size: 20px;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #34495e;
+            font-size: 14px;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #219150;
+        }
+        .result-card {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #eef9f1;
+            border-right: 5px solid #27ae60;
+            border-radius: 6px;
+        }
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        .total-price {
+            font-size: 18px;
+            font-weight: bold;
+            color: #27ae60;
+            text-align: center;
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 2px dashed #27ae60;
+        }
+    </style>
 </head>
 <body>
-    <h2>سامانه محاسبه حقوق و مابه‌التفاوت کارگاه</h2>
 
-    <!-- کادرهای ورودی اطلاعات -->
-    <div>
-        <label>حق‌الزحمه پایه ماهانه (Si):</label><br>
-        <input type="number" id="Si" value="100000000"><br><br>
+<div class="container">
+    <h2>🏗️ سامانه محاسبه حقوق و صورت‌وضعیت M-100</h2>
 
-        <label>ساعات موظف ماهانه (Tm):</label><br>
-        <input type="number" id="Tm" value="180"><br><br>
-
-        <label>ساعات کار روزانه (Tr):</label><br>
-        <input type="number" id="Tr" value="170"><br><br>
-
-        <label>ساعات کار شبانه (Ts):</label><br>
-        <input type="number" id="Ts" value="20"><br><br>
-
-        <!-- دکمه محاسبه -->
-        <button onclick="runCalculation()">محاسبه حقوق</button>
+    <!-- ۱. حقوق پایه -->
+    <div class="form-group">
+        <label for="Bi">حقوق پایه مصوب / قانون کار (Bi) - ریال:</label>
+        <input type="number" id="Bi" value="100000000">
     </div>
 
-    <hr>
+    <!-- ۲. انتخاب رده شغلی -->
+    <div class="form-group">
+        <label for="roleCode">رده شغلی و کد نقش (n1):</label>
+        <select id="roleCode">
+            <option value="S01">S01 - نیروی اجرایی پایه (ضریب 1.00)</option>
+            <option value="S02">S02 - نیروی اجرایی (ضریب 1.05)</option>
+            <option value="S03">S03 - نیروی اجرایی ارشد (ضریب 1.10)</option>
+            <option value="S04">S04 - سرپرست (ضریب 1.18)</option>
+            <option value="S05" selected>S05 - سرپرست کارگاه (ضریب 1.25)</option>
+            <option value="S06">S06 - مدیر بخش (ضریب 1.35)</option>
+            <option value="S07">S07 - مهندس ناظر (ضریب 1.45)</option>
+            <option value="S08">S08 - مهندس ناظر ارشد (ضریب 1.60)</option>
+            <option value="S09">S09 - مدیر فنی / کارشناس ارشد (ضریب 1.75)</option>
+            <option value="S10">S10 - مدیر پروژه (ضریب 1.90)</option>
+            <option value="S11">S11 - مدیر ارشد پروژه (ضریب 2.10)</option>
+            <option value="S12">S12 - مدیر پروژه ویژه (ضریب 2.30)</option>
+        </select>
+    </div>
 
-    <!-- محل نمایش نتایج -->
+    <!-- ۳. کارکرد و ساعات -->
+    <div class="form-group">
+        <label for="Tm">ساعات موظف ماهانه (Tm):</label>
+        <input type="number" id="Tm" value="180">
+    </div>
+
+    <div class="form-group">
+        <label for="Tr">ساعات کارکرد روزانه 6 الی 22 (Tr):</label>
+        <input type="number" id="Tr" value="170">
+    </div>
+
+    <div class="form-group">
+        <label for="Ts">ساعات کارکرد شبانه 22 الی 6 (Ts):</label>
+        <input type="number" id="Ts" value="20">
+    </div>
+
+    <!-- ۴. ضرایب پیمان -->
+    <div class="form-group">
+        <label for="F1">ضریب بالاسری پیمان (F1):</label>
+        <input type="number" id="F1" step="0.01" value="1.66">
+    </div>
+
+    <div class="form-group">
+        <label for="F2">ضریب اضافه کاری پیمانکار (F2):</label>
+        <input type="number" id="F2" step="0.01" value="1.66">
+    </div>
+
+    <button onclick="runCalculation()">محاسبه حقوق و صورت‌وضعیت</button>
+
+    <!-- نتایج -->
     <div id="output"></div>
+</div>
 
-    <!-- اتصال فایل‌های جاوااسکریپت -->
-    <script src="payroll_engine.js"></script>
-    <script src="app.js"></script>
+<script src="payroll_engine.js"></script>
+<script src="app.js"></script>
 </body>
 </html>
