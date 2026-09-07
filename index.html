@@ -3,88 +3,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Freeze-01 | ثبت کارکرد کارگاه</title>
-    <link rel="stylesheet" href="styles.css">
-    <link rel="manifest" href="manifest.json">
+    <title>سامانه محاسبه حقوق و اضافه کاری K-CORE / M-100</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
-        <header>
-            <h1>سامانه محاسبه و ممیزی Freeze-01</h1>
-            <p>ویژه مهندسان مجری و ناظران کارگاه (نقش‌های S01 تا S04)</p>
-        </header>
+        <h2>سامانه محاسبات حقوق و صورت‌وضعیت K-CORE</h2>
+        <p class="subtitle">محاسبه آنلاین حقوق پرسنل و اضافه کاری پیمانکار (مبتنی بر M-100)</p>
 
-        <form id="worklogForm">
-            <section class="card">
-                <h2>مشخصات فردی و شغلی</h2>
-                <div class="form-group">
-                    <label>کد پرسنلی (StaffID):</label>
-                    <input type="text" id="staffId" placeholder="مثلاً ENG-101" required>
-                </div>
-                <div class="form-group">
-                    <label>کد نقش شغلی:</label>
-                    <select id="roleCode">
-                        <option value="S01">S01 - مهندس مجری ارشد</option>
-                        <option value="S02">S02 - ناظر مقیم عمران</option>
-                        <option value="S03">S03 - ناظر مقیم معماری/تاسیسات</option>
-                        <option value="S04">S04 - سرپرست کارگاه</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>مزد شغل روزانه (ریال):</label>
-                    <input type="number" id="dailyBaseWage" placeholder="مثلاً ۵,۰۰۰,۰۰۰" required>
-                </div>
-            </section>
+        <form id="payrollForm">
+            <!-- انتخاب رده شغلی -->
+            <div class="form-group">
+                <label for="roleCode">کد رده شغلی (S01 تا S12):</label>
+                <select id="roleCode" onchange="calculatePayroll()">
+                    <option value="S01">S01 - نیروی اجرایی پایه (nP = 1.00)</option>
+                    <option value="S02">S02 - نیروی اجرایی (nP = 1.05)</option>
+                    <option value="S03">S03 - نیروی اجرایی ارشد (nP = 1.10)</option>
+                    <option value="S04">S04 - سرپرست (nP = 1.18)</option>
+                    <option value="S05">S05 - سرپرست کارگاه (nP = 1.25)</option>
+                    <option value="S06">S06 - مدیر بخش (nP = 1.35)</option>
+                    <option value="S07">S07 - مهندس ناظر (nP = 1.45)</option>
+                    <option value="S08">S08 - مهندس ناظر ارشد (nP = 1.60)</option>
+                    <option value="S09">S09 - مدیر فنی / کارشناس ارشد (nP = 1.75)</option>
+                    <option value="S10">S10 - مدیر پروژه (nP = 1.90)</option>
+                    <option value="S11">S11 - مدیر ارشد پروژه (nP = 2.10)</option>
+                    <option value="S12">S12 - مدیر پروژه ویژه (nP = 2.30)</option>
+                </select>
+            </div>
 
-            <section class="card">
-                <h2>ضرایب هفت‌گانه پروژه (K-Coefficients)</h2>
-                <div class="grid-2">
-                    <div><label>n2 (محیط کارگاهی):</label><input type="number" step="0.001" id="n2" value="1.000"></div>
-                    <div><label>n3 (مسئولیت):</label><input type="number" step="0.001" id="n3" value="1.000"></div>
-                    <div><label>n4 (سختی کار):</label><input type="number" step="0.001" id="n4" value="1.000"></div>
-                    <div><label>n5 (پروژه‌محور):</label><input type="number" step="0.001" id="n5" value="1.000"></div>
-                    <div><label>n6 (تخصصی):</label><input type="number" step="0.001" id="n6" value="1.000"></div>
-                    <div><label>n7 (کارایی):</label><input type="number" step="0.001" id="n7" value="1.000"></div>
-                </div>
-                <div class="form-group margin-top">
-                    <label>n8 (ضریب منطقه - یزد):</label>
-                    <input type="number" id="n8" value="1.365" readonly>
-                </div>
-            </section>
+            <!-- حقوق پایه -->
+            <div class="form-group">
+                <label for="baseSalary">حقوق پایه مصوب (ریال):</label>
+                <input type="number" id="baseSalary" value="100000000" oninput="calculatePayroll()">
+            </div>
 
-            <section class="card">
-                <h2>ثبت کارکرد ماهانه</h2>
-                <div class="grid-2">
-                    <div><label>ساعات کارکرد واقعی:</label><input type="number" id="workedHours" value="176"></div>
-                    <div><label>ساعات موظفی:</label><input type="number" id="requiredHours" value="176"></div>
-                    <div><label>ساعات اضافه‌کاری:</label><input type="number" id="overtimeHours" value="0"></div>
-                    <div><label>ساعات تعطیل‌کاری:</label><input type="number" id="holidayHours" value="0"></div>
-                </div>
-            </section>
+            <!-- کارکرد اضافه کاری -->
+            <div class="form-group">
+                <label for="overtimeHours">ساعت اضافه کاری در ماه:</label>
+                <input type="number" id="overtimeHours" value="20" oninput="calculatePayroll()">
+            </div>
 
-            <button type="button" onclick="processCalculation()" class="btn-primary">محاسبه و ارزیابی هشدارها</button>
+            <!-- ضرایب ۸گانه محیطی -->
+            <fieldset class="env-group">
+                <legend>ضرایب ۸‌گانه شرایط محیطی و کارگاهی ($n_1$ تا $n_8$)</legend>
+                <div class="env-grid">
+                    <div><label>n1 (سختی آب‌وهوا):</label><input type="number" step="0.01" class="env-factor" value="1.00" oninput="calculatePayroll()"></div>
+                    <div><label>n2 (دوری از مرکز):</label><input type="number" step="0.01" class="env-factor" value="1.00" oninput="calculatePayroll()"></div>
+                    <div><label>n3 (خطرات کارگاه):</label><input type="number" step="0.01" class="env-factor" value="1.00" oninput="calculatePayroll()"></div>
+                    <div><label>n4 (تسهیلات رفاهی):</label><input type="number" step="0.01" class="env-factor" value="1.00" oninput="calculatePayroll()"></div>
+                    <div><label>n5 (شیفت کاری):</label><input type="number" step="0.01" class="env-factor" value="1.00" oninput="calculatePayroll()"></div>
+                    <div><label>n6 (حساسیت پروژه):</label><input type="number" step="0.01" class="env-factor" value="1.00" oninput="calculatePayroll()"></div>
+                    <div><label>n7 (فشار زمان‌بندی):</label><input type="number" step="0.01" class="env-factor" value="1.00" oninput="calculatePayroll()"></div>
+                    <div><label>n8 (تجربه تخصصی):</label><input type="number" step="0.01" class="env-factor" value="1.00" oninput="calculatePayroll()"></div>
+                </div>
+            </fieldset>
         </form>
 
-        <section id="resultCard" class="card result-card hidden">
-            <h2>خروجی محاسبات حقوقی Freeze-01</h2>
-            <div id="alertBadge" class="badge">وضعیت: در حال بررسی</div>
-            <p id="alertMessage" class="alert-desc"></p>
-            <hr>
-            <div class="result-grid">
-                <div>پایه ماهانه (Bi): <strong id="resBi">0</strong> ریال</div>
-                <div>ضریب جامع (K): <strong id="resK">0</strong></div>
-                <div>حقوق محاسباتی (Si): <strong id="resSi">0</strong> ریال</div>
-                <div>جمع کل پرداختی: <strong id="resTotal">0</strong> ریال</div>
+        <!-- خروجی محاسبات -->
+        <div class="results-card">
+            <h3>جدول خلاصه محاسبات مالی</h3>
+            <table class="result-table">
+                <tr>
+                    <td>خالص حقوق دریافتی ماهانه:</td>
+                    <td><strong id="resNetSalary">-</strong> ریال</td>
+                </tr>
+                <tr>
+                    <td>نرخ ساعتی پایه (حقوق ÷ ۲۲۰):</td>
+                    <td><span id="resHourlyRate">-</span> ریال</td>
+                </tr>
+                <tr>
+                    <td>اضافه کاری پرداختی پرسنل (ضریب ۱.۴۰):</td>
+                    <td><span id="resOvertimeWorker">-</span> ریال</td>
+                </tr>
+                <tr>
+                    <td>اضافه کاری صورت وضعیت پیمانکار (ضریب ۱.۶۶):</td>
+                    <td><span id="resOvertimeContractor">-</span> ریال</td>
+                </tr>
+                <tr class="highlight-row">
+                    <td>جمع کل پرداختی مستقیم به پرسنل:</td>
+                    <td><strong id="resTotalWorker">-</strong> ریال</td>
+                </tr>
+                <tr class="highlight-row contractor-row">
+                    <td>جمع کل صورت وضعیت قابل پرداخت به پیمانکار:</td>
+                    <td><strong id="resTotalContractor">-</strong> ریال</td>
+                </tr>
+            </table>
+
+            <div class="actions">
+                <button type="button" class="btn-export" onclick="exportToExcel()">📥 دانلود خروجی اکسل (CSV/XLSX)</button>
             </div>
-            <button onclick="exportDataJSON()" class="btn-secondary">دانلود خروجی جهت انتقال با کابل به VS Code</button>
-        </section>
+        </div>
     </div>
 
     <script src="app.js"></script>
     <script>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js');
-        }
+        // محاسبه اولیه به محض بارگذاری صفحه
+        document.addEventListener("DOMContentLoaded", calculatePayroll);
     </script>
 </body>
 </html>
