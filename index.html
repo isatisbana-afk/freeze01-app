@@ -5,98 +5,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>سامانه محاسبه حقوق K-CORE / M-100</title>
     <style>
-        body {
-            font-family: Tahoma, Arial, sans-serif;
-            background-color: #f4f6f9;
-            margin: 0;
-            padding: 15px;
-            direction: rtl;
-        }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            background: #ffffff;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        }
-        h2 {
-            text-align: center;
-            color: #2c3e50;
-            font-size: 20px;
-            margin-bottom: 20px;
-        }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        label {
-            display: block;
-            font-weight: bold;
-            margin-bottom: 5px;
-            color: #34495e;
-            font-size: 14px;
-        }
-        input, select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            box-sizing: border-box;
-            font-size: 14px;
-        }
-        button {
-            width: 100%;
-            padding: 12px;
-            background-color: #27ae60;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-        button:hover {
-            background-color: #219150;
-        }
-        .result-card {
-            margin-top: 20px;
-            padding: 15px;
-            background-color: #eef9f1;
-            border-right: 5px solid #27ae60;
-            border-radius: 6px;
-        }
-        .result-item {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-            font-size: 14px;
-        }
-        .total-price {
-            font-size: 18px;
-            font-weight: bold;
-            color: #27ae60;
-            text-align: center;
-            margin-top: 15px;
-            padding-top: 10px;
-            border-top: 2px dashed #27ae60;
-        }
+        body { font-family: Tahoma, Arial, sans-serif; background-color: #f4f6f9; margin: 0; padding: 15px; direction: rtl; }
+        .container { max-width: 600px; margin: 0 auto; background: #ffffff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: #2c3e50; font-size: 18px; margin-bottom: 15px; }
+        .form-group { margin-bottom: 12px; }
+        label { display: block; font-weight: bold; margin-bottom: 4px; color: #34495e; font-size: 13px; }
+        input, select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        button { width: 100%; padding: 12px; background-color: #27ae60; color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 15px; }
+        button:hover { background-color: #219150; }
+        .result-card { margin-top: 20px; padding: 15px; background-color: #eef9f1; border-right: 5px solid #27ae60; border-radius: 6px; }
+        .result-item { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; }
+        .total-price { font-size: 18px; font-weight: bold; color: #27ae60; text-align: center; margin-top: 12px; padding-top: 8px; border-top: 2px dashed #27ae60; }
+        .section-title { background: #ebf5fb; padding: 6px 10px; border-radius: 4px; font-size: 13px; font-weight: bold; color: #2980b9; margin: 15px 0 10px 0; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>🏗️ سامانه محاسبه حقوق و صورت‌وضعیت M-100</h2>
+    <h2>🏗️ سامانه محاسبه حقوق K-CORE / M-100</h2>
 
-    <!-- ۱. حقوق پایه -->
+    <div class="section-title">۱. حقوق پایه و رده شغلی (n1)</div>
     <div class="form-group">
-        <label for="Bi">حقوق پایه مصوب / قانون کار (Bi) - ریال:</label>
+        <label for="Bi">حقوق پایه مصوب (Bi) - ریال:</label>
         <input type="number" id="Bi" value="100000000">
     </div>
 
-    <!-- ۲. انتخاب رده شغلی -->
     <div class="form-group">
-        <label for="roleCode">رده شغلی و کد نقش (n1):</label>
+        <label for="roleCode">رده شغلی (n1):</label>
         <select id="roleCode">
             <option value="S01">S01 - نیروی اجرایی پایه (ضریب 1.00)</option>
             <option value="S02">S02 - نیروی اجرایی (ضریب 1.05)</option>
@@ -113,36 +49,66 @@
         </select>
     </div>
 
-    <!-- ۳. کارکرد و ساعات -->
+    <div class="section-title">۲. ضرایب ۷‌گانه محیطی (n2 تا n8)</div>
+    <div class="grid-2">
+        <div class="form-group">
+            <label for="n2">n2 (دوری از مرکز):</label>
+            <input type="number" id="n2" step="0.01" value="1.00">
+        </div>
+        <div class="form-group">
+            <label for="n3">n3 (خطرات کارگاه):</label>
+            <input type="number" id="n3" step="0.01" value="1.00">
+        </div>
+        <div class="form-group">
+            <label for="n4">n4 (شیفت کاری):</label>
+            <input type="number" id="n4" step="0.01" value="1.00">
+        </div>
+        <div class="form-group">
+            <label for="n5">n5 (حساسیت پروژه):</label>
+            <input type="number" id="n5" step="0.01" value="1.00">
+        </div>
+        <div class="form-group">
+            <label for="n6">n6 (زمان‌بندی):</label>
+            <input type="number" id="n6" step="0.01" value="1.00">
+        </div>
+        <div class="form-group">
+            <label for="n7">n7 (سابقه و تجربه):</label>
+            <input type="number" id="n7" step="0.01" value="1.00">
+        </div>
+    </div>
     <div class="form-group">
-        <label for="Tm">ساعات موظف ماهانه (Tm):</label>
-        <input type="number" id="Tm" value="180">
+        <label for="n8">n8 (سایر عوامل محیطی):</label>
+        <input type="number" id="n8" step="0.01" value="1.00">
     </div>
 
-    <div class="form-group">
-        <label for="Tr">ساعات کارکرد روزانه 6 الی 22 (Tr):</label>
-        <input type="number" id="Tr" value="170">
+    <div class="section-title">۳. کارکرد و ضرایب پیمان</div>
+    <div class="grid-2">
+        <div class="form-group">
+            <label for="Tm">ساعات موظف (Tm):</label>
+            <input type="number" id="Tm" value="180">
+        </div>
+        <div class="form-group">
+            <label for="Tr">ساعات روزانه (Tr):</label>
+            <input type="number" id="Tr" value="170">
+        </div>
     </div>
-
-    <div class="form-group">
-        <label for="Ts">ساعات کارکرد شبانه 22 الی 6 (Ts):</label>
-        <input type="number" id="Ts" value="20">
+    <div class="grid-2">
+        <div class="form-group">
+            <label for="Ts">ساعات شبانه (Ts):</label>
+            <input type="number" id="Ts" value="20">
+        </div>
+        <div class="form-group">
+            <label for="F1">ضریب بالاسری (F1):</label>
+            <input type="number" id="F1" step="0.01" value="1.66">
+        </div>
     </div>
-
-    <!-- ۴. ضرایب پیمان -->
     <div class="form-group">
-        <label for="F1">ضریب بالاسری پیمان (F1):</label>
-        <input type="number" id="F1" step="0.01" value="1.66">
-    </div>
-
-    <div class="form-group">
-        <label for="F2">ضریب اضافه کاری پیمانکار (F2):</label>
+        <label for="F2">ضریب اضافه کاری (F2):</label>
         <input type="number" id="F2" step="0.01" value="1.66">
     </div>
 
-    <button onclick="runCalculation()">محاسبه حقوق و صورت‌وضعیت</button>
+    <button onclick="runCalculation()">محاسبه کامل حقوق و صورت‌وضعیت</button>
 
-    <!-- نتایج -->
     <div id="output"></div>
 </div>
 
