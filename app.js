@@ -1,90 +1,81 @@
-let currentCalculationResult = null;
+// K-CORE Web UI & Payroll Engine Integration with Excel Export
 
-function processCalculation() {
-    const dailyWage = parseFloat(document.getElementById('dailyBaseWage').value) || 0;
-    const n2 = parseFloat(document.getElementById('n2').value);
-    const n3 = parseFloat(document.getElementById('n3').value);
-    const n4 = parseFloat(document.getElementById('n4').value);
-    const n5 = parseFloat(document.getElementById('n5').value);
-    const n6 = parseFloat(document.getElementById('n6').value);
-    const n7 = parseFloat(document.getElementById('n7').value);
-    const n8 = parseFloat(document.getElementById('n8').value) || 1.365;
+const ROLE_COEFFICIENTS = {
+  S01: 1.00, S02: 1.05, S03: 1.10, S04: 1.18,
+  S05: 1.25, S06: 1.35, S07: 1.45, S08: 1.60,
+  S09: 1.75, S10: 1.90, S11: 2.10, S12: 2.30
+};
 
-    const workedHours = parseFloat(document.getElementById('workedHours').value) || 0;
-    const requiredHours = parseFloat(document.getElementById('requiredHours').value) || 176;
-    const overtimeHours = parseFloat(document.getElementById('overtimeHours').value) || 0;
-    const holidayHours = parseFloat(document.getElementById('holidayHours').value) || 0;
+function calculatePayroll() {
+  const roleCode = document.getElementById('roleCode').value;
+  const baseSalary = parseFloat(document.getElementById('baseSalary').value) || 0;
+  const overtimeHours = parseFloat(document.getElementById('overtimeHours').value) || 0;
 
-    // ۱. محاسبه پایه ماهانه Bi
-    const Bi = dailyWage * 30.5;
+  // دریافت ضرایب ۸ گانه محیطی
+  const envInputs = document.querySelectorAll('.env-factor');
+  let envProduct = 1;
+  const envValues = [];
+  envInputs.forEach(input => {
+    const val = parseFloat(input.value) || 1.0;
+    envValues.push(val);
+    envProduct *= val;
+  });
 
-    // ۲. بررسی ضریب خالی (YELLOW Alert)
-    if ([n2, n3, n4, n5, n6, n7].some(val => isNaN(val) || val <= 0)) {
-        renderResult("YELLOW", "یکی از ضرایب هفت‌گانه وارد نشده یا صفر است.", Bi, 0, 0, 0);
-        return;
-    }
+  const nP = ROLE_COEFFICIENTS[roleCode] || 1.0;
+  const netSalary = Math.round(baseSalary * envProduct * nP);
+  const hourlyRate = Math.round(netSalary / 220);
+  const overtimePayWorker = Math.round(overtimeHours * hourlyRate * 1.40);
+  const overtimePayContractor = Math.round(overtimeHours * hourlyRate * 1.66);
+  const totalWorker = netSalary + overtimePayWorker;
+  const totalContractor = netSalary + overtimePayContractor;
 
-    // ۳. محاسبه K و Si
-    const K = n2 * n3 * n4 * n5 * n6 * n7 * n8;
-    const Si = Bi * K;
+  // نمایش نتایج روی صفحه
+  document.getElementById('resNetSalary').innerText = netSalary.toLocaleString('fa-IR');
+  document.getElementById('resHourlyRate').innerText = hourlyRate.toLocaleString('fa-IR');
+  document.getElementById('resOvertimeWorker').innerText = overtimePayWorker.toLocaleString('fa-IR');
+  document.getElementById('resOvertimeContractor').innerText = overtimePayContractor.toLocaleString('fa-IR');
+  document.getElementById('resTotalWorker').innerText = totalWorker.toLocaleString('fa-IR');
+  document.getElementById('resTotalContractor').innerText = totalContractor.toLocaleString('fa-IR');
 
-    // ۴. اضافه‌کاری و جمع کل
-    const hourlyRate = Bi / 176;
-    const otPay = overtimeHours * hourlyRate * 1.4;
-    const holPay = holidayHours * hourlyRate * 1.5;
-    const totalPay = Si + otPay + holPay;
-
-    // ۵. ارزیابی هشدارهای ۵ گانه
-    let alertStatus = "GREEN";
-    let alertMessage = "محاسبات تایید شد و حقوق منطبق بر فرمول است.";
-
-    if (Si < Bi) {
-        alertStatus = "RED";
-        alertMessage = "خطای بحرانی حقوق: مقدار Si کمتر از پایه قانونی Bi است!";
-    } else if (workedHours < requiredHours) {
-        alertStatus = "ORANGE";
-        alertMessage = "هشدار: کارکرد واقعی کمتر از موظفی ماهانه ثبت شده است.";
-    } else if (overtimeHours > 60) {
-        alertStatus = "BLUE";
-        alertMessage = "تذکر: ساعات اضافه‌کاری بیش از سقف استاندارد (۶۰ ساعت) است.";
-    }
-
-    renderResult(alertStatus, alertMessage, Bi, K, Si, totalPay);
+  return {
+    roleCode,
+    nP,
+    baseSalary,
+    envProduct: envProduct.toFixed(4),
+    netSalary,
+    hourlyRate,
+    overtimeHours,
+    overtimePayWorker,
+    overtimePayContractor,
+    totalWorker,
+    totalContractor
+  };
 }
 
-function renderResult(status, message, Bi, K, Si, totalPay) {
-    const card = document.getElementById('resultCard');
-    const badge = document.getElementById('alertBadge');
-    
-    card.classList.remove('hidden');
-    badge.className = `badge bg-${status}`;
-    badge.innerText = `وضعیت هشدار: ${status}`;
-    document.getElementById('alertMessage').innerText = message;
+function exportToExcel() {
+  const data = calculatePayroll();
+  
+  // ساخت محتوای CSV / Excel با پشتیبانی کامل از زبان فارسی
+  let csvContent = "\uFEFF"; // BOM for UTF-8 Persian Support
+  csvContent += "شاخص محاسباتی,مقدار / ریال\n";
+  csvContent += `کد نقش شغلی,${data.roleCode}\n`;
+  csvContent += `ضریب رده شغلی (nP),${data.nP}\n`;
+  csvContent += `حقوق پایه مصوب (B_i),${data.baseSalary}\n`;
+  csvContent += `حاصلضرب ضرایب محیطی ۸گانه,${data.envProduct}\n`;
+  csvContent += `خالص دریافتی ماهانه,${data.netSalary}\n`;
+  csvContent += `نرخ ساعتی پایه,${data.hourlyRate}\n`;
+  csvContent += `ساعت اضافه کاری,${data.overtimeHours}\n`;
+  csvContent += `اضافه کاری پرداختی پرسنل (ضریب ۱.۴۰),${data.overtimePayWorker}\n`;
+  csvContent += `اضافه کاری صورت وضعیت پیمانکار (ضریب ۱.۶۶),${data.overtimePayContractor}\n`;
+  csvContent += `جمع کل پرداختی به پرسنل,${data.totalWorker}\n`;
+  csvContent += `جمع کل صورت وضعیت پیمانکار,${data.totalContractor}\n`;
 
-    document.getElementById('resBi').innerText = Math.round(Bi).toLocaleString();
-    document.getElementById('resK').innerText = K.toFixed(4);
-    document.getElementById('resSi').innerText = Math.round(Si).toLocaleString();
-    document.getElementById('resTotal').innerText = Math.round(totalPay).toLocaleString();
-
-    currentCalculationResult = {
-        staffId: document.getElementById('staffId').value,
-        roleCode: document.getElementById('roleCode').value,
-        timestamp: new Date().toISOString(),
-        Bi, K, Si, totalPay, alertStatus: status, alertMessage: message
-    };
-
-    // ذخیره در LocalStorage مرورگر گوشی
-    localStorage.setItem('last_freeze01_worklog', JSON.stringify(currentCalculationResult));
-}
-
-// دانلود فایل جهت انتقال کابل به VS Code
-function exportDataJSON() {
-    if (!currentCalculationResult) return;
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(currentCalculationResult, null, 2));
-    const downloadAnchor = document.createElement('a');
-    downloadAnchor.setAttribute("href", dataStr);
-    downloadAnchor.setAttribute("download", `freeze01_worklog_${currentCalculationResult.staffId || 'export'}.json`);
-    document.body.appendChild(downloadAnchor);
-    downloadAnchor.click();
-    downloadAnchor.remove();
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement("a");
+  const url = URL.createObjectURL(blob);
+  link.setAttribute("href", url);
+  link.setAttribute("download", `KCORE_Payroll_${data.roleCode}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 }
