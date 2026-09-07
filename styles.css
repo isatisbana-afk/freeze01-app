@@ -1,103 +1,115 @@
 body {
-    font-family: Tahoma, 'Segoe UI', sans-serif;
-    background-color: #f4f6f9;
+    font-family: 'IRANSans', Tahoma, 'Segoe UI', sans-serif;
+    background-color: #f0f4f8;
     direction: rtl;
     margin: 0;
-    padding: 15px;
-    color: #333;
+    padding: 12px;
+    color: #2d3748;
 }
 
 .container {
-    max-width: 700px;
+    max-width: 680px;
     margin: 0 auto;
-    background: #fff;
+    background: #ffffff;
     padding: 20px;
     border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
 }
 
 h2 {
     color: #1a365d;
     text-align: center;
-    margin-top: 0;
-    font-size: 1.4rem;
+    margin-top: 5px;
+    font-size: 1.35rem;
 }
 
 .subtitle {
     text-align: center;
     color: #718096;
     font-size: 0.85rem;
-    margin-bottom: 20px;
+    margin-bottom: 22px;
 }
 
 .form-group {
-    margin-bottom: 15px;
+    margin-bottom: 16px;
 }
 
 label {
     display: block;
     font-weight: bold;
-    margin-bottom: 5px;
-    font-size: 0.9rem;
+    margin-bottom: 6px;
+    font-size: 0.88rem;
+    color: #2d3748;
 }
 
 input, select {
     width: 100%;
-    padding: 10px;
+    padding: 10px 12px;
     border: 1px solid #cbd5e0;
-    border-radius: 6px;
+    border-radius: 8px;
     box-sizing: border-box;
     font-size: 0.95rem;
+    background-color: #fff;
+}
+
+input:focus, select:focus {
+    border-color: #3182ce;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.15);
 }
 
 .env-group {
     border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    padding: 12px;
+    border-radius: 10px;
+    padding: 14px;
     margin-bottom: 20px;
+    background-color: #fafbfd;
 }
 
 .env-group legend {
     font-weight: bold;
     color: #2b6cb0;
     font-size: 0.85rem;
-    padding: 0 5px;
+    padding: 0 8px;
 }
 
 .env-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
     gap: 10px;
 }
 
 .env-grid label {
     font-size: 0.78rem;
     font-weight: normal;
+    color: #4a5568;
 }
 
 .results-card {
     background: #f7fafc;
     border: 1px solid #e2e8f0;
-    padding: 15px;
-    border-radius: 8px;
+    padding: 16px;
+    border-radius: 10px;
     margin-top: 20px;
 }
 
 .results-card h3 {
     margin-top: 0;
-    font-size: 1.1rem;
+    font-size: 1.05rem;
     color: #2d3748;
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 8px;
 }
 
 .result-table {
     width: 100%;
     border-collapse: collapse;
-    margin-bottom: 15px;
-    font-size: 0.9rem;
+    margin-bottom: 16px;
+    font-size: 0.88rem;
 }
 
 .result-table td {
-    padding: 8px 4px;
+    padding: 9px 6px;
     border-bottom: 1px solid #edf2f7;
 }
 
@@ -109,20 +121,22 @@ input, select {
 .highlight-row {
     background-color: #ebf8ff;
     font-weight: bold;
+    color: #2b6cb0;
 }
 
 .contractor-row {
     background-color: #f0fff4;
+    color: #276749;
 }
 
 .btn-export {
     width: 100%;
     background-color: #2b6cb0;
-    color: white;
+    color: #ffffff;
     border: none;
-    padding: 12px;
-    border-radius: 6px;
-    font-size: 1rem;
+    padding: 13px;
+    border-radius: 8px;
+    font-size: 0.98rem;
     font-weight: bold;
     cursor: pointer;
     transition: background 0.2s;
