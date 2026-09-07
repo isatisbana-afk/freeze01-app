@@ -1,110 +1,58 @@
-// ==========================================
-// K-CORE / M-100 Payroll & Subcontractor Engine
-// ==========================================
+document.getElementById('calcBtn').addEventListener('click', function() {
+    const dailyWage = Number(document.getElementById('dailyWage').value) || 0;
+    const requiredHours = Number(document.getElementById('requiredHours').value) || 176;
+    const workedHours = Number(document.getElementById('workedHours').value) || 176;
+    const otHours = Number(document.getElementById('otHours').value) || 0;
+    const holidayHours = Number(document.getElementById('holidayHours').value) || 0;
 
-// جدول ضرایب رده شغلی (n1)
-const ROLE_COEFFICIENTS = {
-    'S01': 1.00, // نیروی اجرایی پایه
-    'S02': 1.05, // نیروی اجرایی
-    'S03': 1.10, // نیروی اجرایی ارشد
-    'S04': 1.18, // سرپرست
-    'S05': 1.25, // سرپرست کارگاه
-    'S06': 1.35, // مدیر بخش
-    'S07': 1.45, // مهندس ناظر
-    'S08': 1.60, // مهندس ناظر ارشد
-    'S09': 1.75, // مدیر فنی / کارشناس ارشد
-    'S10': 1.90, // مدیر پروژه
-    'S11': 2.10, // مدیر ارشد پروژه
-    'S12': 2.30  // مدیر پروژه ویژه
-};
+    const n2 = Number(document.getElementById('n2').value) || 1;
+    const n3 = Number(document.getElementById('n3').value) || 1;
+    const n4 = Number(document.getElementById('n4').value) || 1;
+    const n5 = Number(document.getElementById('n5').value) || 1;
+    const n6 = Number(document.getElementById('n6').value) || 1;
+    const n7 = Number(document.getElementById('n7').value) || 1;
+    const n8 = Number(document.getElementById('n8').value) || 1;
 
-function calculatePayroll() {
-    const roleCode = document.getElementById('roleCode').value;
-    const baseSalary = parseFloat(document.getElementById('baseSalary').value) || 0;
-    const overtimeHours = parseFloat(document.getElementById('overtimeHours').value) || 0;
+    const Bi = dailyWage * 30.5;
+    const K = n2 * n3 * n4 * n5 * n6 * n7 * n8;
+    const Si = Bi * K;
 
-    // n1: ضریب رده شغلی
-    const n1 = ROLE_COEFFICIENTS[roleCode] || 1.00;
+    const hourlyRate = Bi / 176;
+    const otPay = otHours * hourlyRate * 1.4;
+    const holidayPay = holidayHours * hourlyRate * 1.5;
+    const grossPay = Si + otPay + holidayPay;
 
-    // n2 تا n8: محاسبه حاصلضرب ضرایب 7 گانه شرایط محیطی
-    const envInputs = document.querySelectorAll('.env-factor');
-    let envProduct = 1.0;
-    envInputs.forEach(input => {
-        const val = parseFloat(input.value);
-        if (!isNaN(val) && val > 0) {
-            envProduct *= val;
-        }
-    });
+    const taxBase = Math.max(0, grossPay - 120000000);
+    const tax10 = taxBase * 0.10;
+    const netPay = grossPay - (grossPay * 0.07) - tax10;
 
-    // حاصلضرب کل 8 ضریب (n1 * n2 * ... * n8)
-    const totalMultiplier = n1 * envProduct;
+    document.getElementById('resBi').innerText = Math.round(Bi).toLocaleString() + ' ریال';
+    document.getElementById('resK').innerText = K.toFixed(4);
+    document.getElementById('resSi').innerText = Math.round(Si).toLocaleString() + ' ریال';
+    document.getElementById('resGross').innerText = Math.round(grossPay).toLocaleString() + ' ریال';
+    document.getElementById('resTax').innerText = Math.round(tax10).toLocaleString() + ' ریال';
+    document.getElementById('resNet').innerText = Math.round(netPay).toLocaleString() + ' ریال';
 
-    // خالص حقوق ماهانه
-    const netSalary = Math.round(baseSalary * totalMultiplier);
+    const badge = document.getElementById('alertBadge');
+    const alertText = document.getElementById('alertText');
 
-    // نرخ ساعتی پایه (حقوق ÷ 220)
-    const hourlyRate = Math.round(netSalary / 220);
+    if (Si < Bi) {
+        badge.className = "badge badge-red"; badge.innerText = "وضعیت: هشدار قرمز";
+        alertText.innerText = "دریافتی Si کمتر از حداقل پایه Bi است.";
+    } else if (workedHours < requiredHours) {
+        badge.className = "badge badge-orange"; badge.innerText = "وضعیت: هشدار نارنجی";
+        alertText.innerText = "کارکرد کمتر از ساعات موظف می‌باشد.";
+    } else if (otHours > 40) {
+        badge.className = "badge badge-blue"; badge.innerText = "وضعیت: هشدار آبی";
+        alertText.innerText = "ساعات اضافه‌کاری بیش از سقف مجاز (۴۰ ساعت) است.";
+    } else if (n3 === 1) {
+        badge.className = "badge badge-yellow"; badge.innerText = "وضعیت: هشدار زرد";
+        alertText.innerText = "ضریب n3 اعمال نشده است.";
+    } else {
+        badge.className = "badge badge-ok"; badge.innerText = "وضعیت: OK";
+        alertText.innerText = "محاسبات طبیعی و بدون خطا است.";
+    }
+});
 
-    // اضافه کاری پرسنل (ضریب 1.40)
-    const overtimePayWorker = Math.round(overtimeHours * hourlyRate * 1.40);
-
-    // اضافه کاری صورت وضعیت پیمانکار (ضریب 1.66)
-    const overtimePayContractor = Math.round(overtimeHours * hourlyRate * 1.66);
-
-    // جمع‌های کل
-    const totalWorker = netSalary + overtimePayWorker;
-    const totalContractor = netSalary + overtimePayContractor;
-
-    // درج خروجی در صفحه
-    document.getElementById('resNetSalary').innerText = netSalary.toLocaleString('fa-IR');
-    document.getElementById('resHourlyRate').innerText = hourlyRate.toLocaleString('fa-IR');
-    document.getElementById('resOvertimeWorker').innerText = overtimePayWorker.toLocaleString('fa-IR');
-    document.getElementById('resOvertimeContractor').innerText = overtimePayContractor.toLocaleString('fa-IR');
-    document.getElementById('resTotalWorker').innerText = totalWorker.toLocaleString('fa-IR');
-    document.getElementById('resTotalContractor').innerText = totalContractor.toLocaleString('fa-IR');
-
-    return {
-        roleCode,
-        n1,
-        baseSalary,
-        envProduct: envProduct.toFixed(4),
-        totalMultiplier: totalMultiplier.toFixed(4),
-        netSalary,
-        hourlyRate,
-        overtimeHours,
-        overtimePayWorker,
-        overtimePayContractor,
-        totalWorker,
-        totalContractor
-    };
-}
-
-// تابع خروجی اکسل / CSV با پشتیبانی کامل از کاراکترهای فارسی
-function exportToExcel() {
-    const data = calculatePayroll();
-
-    // افزودن UTF-8 BOM جهت نمایش صحیح حروف فارسی در Excel
-    let csvContent = "\uFEFF";
-    csvContent += "عنوان شاخص,مقدار / مبلغ (ریال)\n";
-    csvContent += `کد رده شغلی,${data.roleCode}\n`;
-    csvContent += `ضریب رده شغلی (n1),${data.n1}\n`;
-    csvContent += `حقوق پایه مصوب (B_i),${data.baseSalary}\n`;
-    csvContent += `حاصلضرب ضرایب محیطی (n2 تا n8),${data.envProduct}\n`;
-    csvContent += `ضریب کل محاسباتی (n1 * ... * n8),${data.totalMultiplier}\n`;
-    csvContent += `خالص دریافتی ماهانه پرسنل,${data.netSalary}\n`;
-    csvContent += `نرخ ساعتی پایه (حقوق ÷ ۲۲۰),${data.hourlyRate}\n`;
-    csvContent += `ساعت کارکرد اضافه کاری,${data.overtimeHours}\n`;
-    csvContent += `مبلغ اضافه کاری پرسنل (ضریب ۱.۴۰),${data.overtimePayWorker}\n`;
-    csvContent += `مبلغ اضافه کاری پیمانکار (ضریب ۱.۶۶),${data.overtimePayContractor}\n`;
-    csvContent += `جمع کل پرداختی مستقیم به پرسنل,${data.totalWorker}\n`;
-    csvContent += `جمع کل صورت وضعیت پیمانکار,${data.totalContractor}\n`;
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement("a");
-    const url = URL.createObjectURL(blob);
-    link.setAttribute("href", url);
-    link.setAttribute("download", `KCORE_Payroll_Report_${data.roleCode}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-}
+// اجرای اولیه هنگام بارگذاری
+document.getElementById('calcBtn').click();
