@@ -1,24 +1,46 @@
-// Core Logic Engine - Batch Integration Test (S01 to S12)
-const { processWorkerPayroll } = require('./payroll_adapter');
-
-const roles = ['S01', 'S02', 'S03', 'S04', 'S05', 'S06', 'S07', 'S08', 'S09', 'S10', 'S11', 'S12'];
-const baseSalary = 10000000; // پایه حقوق نمونه
-const envFactors = [1.1, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]; // ضرایب نمونه محیطی
-
-console.log("=========================================");
-console.log("   آغاز اعتبارسنجی یکپارچه سطوح S01 تا S12   ");
-console.log("=========================================");
-
-try {
-  roles.forEach(roleCode => {
-    const workerData = { roleCode, baseSalary, envFactors };
-    const response = processWorkerPayroll(workerData);
-    console.log(`[OK] Role: ${roleCode} | Factor: ${response.appliedRoleFactor} | Net: ${response.netSalary.toLocaleString()} Rial`);
-  });
-  console.log("=========================================");
-  console.log("  تمامی ۱۲ سطح شغلی با موفقیت ارزیابی شدند. ");
-  console.log("=========================================");
-} catch (error) {
-  console.error("خطا در تست انباشته:", error.message);
-  process.exit(1);
-}
+[
+  {
+    "title": "سناریو ۱: نیروی اجرایی پایه (کد نقش S01 - شرایط عادی کارگاه)",
+    "roleCode": "S01",
+    "baseSalary": 100000000,
+    "envFactors": [1.00, 1.00, 1.05, 1.00, 1.00, 1.00, 1.00, 1.00],
+    "overtimeHours": 20,
+    "expected": {
+      "nP": 1.00,
+      "description": "محاسبه پایه با ضریب نقش S01 و ضریب محیطی ۱.۰۵"
+    }
+  },
+  {
+    "title": "سناریو ۲: سرپرست کارگاه (کد نقش S05 - شرایط سخت اقلیمی و بدی آب‌وهوا)",
+    "roleCode": "S05",
+    "baseSalary": 180000000,
+    "envFactors": [1.10, 1.05, 1.10, 1.00, 1.05, 1.00, 1.00, 1.00],
+    "overtimeHours": 40,
+    "expected": {
+      "nP": 1.25,
+      "description": "محاسبه حقوق سرپرست کارگاه با ضریب نقش ۱.۲۵ و اضافه کاری"
+    }
+  },
+  {
+    "title": "سناریو ۳: مهندس ناظر ارشد (کد نقش S08 - پروژه دورافتاده و دوری از مرکز)",
+    "roleCode": "S08",
+    "baseSalary": 250000000,
+    "envFactors": [1.15, 1.10, 1.10, 1.05, 1.05, 1.00, 1.00, 1.00],
+    "overtimeHours": 30,
+    "expected": {
+      "nP": 1.60,
+      "description": "ارزیابی ضریب نقش ۱.۶۰ و ضرایب چندگانه سازمان برنامه"
+    }
+  },
+  {
+    "title": "سناریو ۴: مدیر پروژه (کد نقش S12 - شرایط فوق‌العاده و خطرات ویژه)",
+    "roleCode": "S12",
+    "baseSalary": 350000000,
+    "envFactors": [1.20, 1.15, 1.10, 1.10, 1.05, 1.00, 1.00, 1.00],
+    "overtimeHours": 15,
+    "expected": {
+      "nP": 2.30,
+      "description": "محاسبه بالاترین رده مدیریتی S12 با ضرایب حداکثری"
+    }
+  }
+]
