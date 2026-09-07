@@ -15,21 +15,33 @@ const JOB_ROLES = {
 };
 
 function runCalculation() {
-    // ۱. دریافت ورودی‌ها
+    // ۱. دریافت حقوق پایه و نقش
     const Bi = parseFloat(document.getElementById('Bi').value) || 0;
     const roleCode = document.getElementById('roleCode').value;
+    
+    // ۲. دریافت ضرایب ۷ گانه محیطی (n2 تا n8)
+    const n2 = parseFloat(document.getElementById('n2').value) || 1.00;
+    const n3 = parseFloat(document.getElementById('n3').value) || 1.00;
+    const n4 = parseFloat(document.getElementById('n4').value) || 1.00;
+    const n5 = parseFloat(document.getElementById('n5').value) || 1.00;
+    const n6 = parseFloat(document.getElementById('n6').value) || 1.00;
+    const n7 = parseFloat(document.getElementById('n7').value) || 1.00;
+    const n8 = parseFloat(document.getElementById('n8').value) || 1.00;
+
+    // ۳. دریافت ساعات و ضرایب پیمان
     const Tm = parseFloat(document.getElementById('Tm').value) || 0;
     const Tr = parseFloat(document.getElementById('Tr').value) || 0;
     const Ts = parseFloat(document.getElementById('Ts').value) || 0;
     const F1 = parseFloat(document.getElementById('F1').value) || 1.66;
     const F2 = parseFloat(document.getElementById('F2').value) || 1.66;
 
-    // ۲. محاسبه Si بر اساس ضریب n1
+    // ۴. محاسبه کامل Si بر اساس حاصل‌ضرب تمام ضرایب (n1 * n2 * ... * n8)
     const role = JOB_ROLES[roleCode] || { title: "نامشخص", n1: 1.00 };
     const n1 = role.n1;
-    const Si = Bi * n1;
+    const envProduct = n2 * n3 * n4 * n5 * n6 * n7 * n8;
+    const Si = Bi * n1 * envProduct;
 
-    // ۳. فراخوانی تابع محاسبه اصلی یا محاسبه داخلی
+    // ۵. اجرای محاسبات اصلی
     let result;
     if (typeof calculateSiteSalary === 'function') {
         result = calculateSiteSalary(Si, Tm, Tr, Ts, F1, F2);
@@ -37,17 +49,21 @@ function runCalculation() {
         result = internalCalculate(Si, Tm, Tr, Ts, F1, F2);
     }
 
-    // ۴. نمایش خروجی با فرمت شکیل
+    // ۶. نمایش نتایج با تفکیک کامل
     const outputDiv = document.getElementById('output');
     outputDiv.innerHTML = `
         <div class="result-card">
             <div class="result-item">
-                <span>عنوان رده شغلی:</span>
-                <b>${role.title} (${roleCode})</b>
+                <span>رده شغلی (n1):</span>
+                <b>${role.title} (${roleCode} = ${n1})</b>
             </div>
             <div class="result-item">
-                <span>حق‌الزحمه پایه محاسبه‌شده (Si):</span>
-                <b>${Math.round(Si).toLocaleString()} ریال</b>
+                <span>حاصل‌ضرب ضرایب محیطی (n2..n8):</span>
+                <b>${envProduct.toFixed(4)}</b>
+            </div>
+            <div class="result-item">
+                <span>حق‌الزحمه پایه (Si):</span>
+                <b style="color: #2980b9;">${Math.round(Si).toLocaleString()} ریال</b>
             </div>
             <hr>
             <div class="result-item">
@@ -74,7 +90,6 @@ function runCalculation() {
     `;
 }
 
-// تابع جایگزین در صورت نبود فایل خارجی
 function internalCalculate(Si, Tm, Tr, Ts, F1, F2) {
     const totalHours = Tr + Ts;
     let lambdaHours = 0, Td = 0, Te = 0;
