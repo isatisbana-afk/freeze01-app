@@ -1,101 +1,78 @@
 /**
- * Freeze01 / K-CORE Payroll & Cloud Engine
- * Core Logic for Engineer Salary Calculation
+ * موتور محاسباتی جدید حقوق و مزایای عوامل مدیریت کارگاه
+ * فایل: payroll_engine.js
  */
 
-function calculateFreeze01(input) {
-    const {
-        dailyWage = 0,
-        requiredHours = 176,
-        workedHours = 176,
-        otHours = 0,
-        holidayHours = 0,
-        n2 = 1.05,
-        n3 = 1.15,
-        n4 = 1.08,
-        n5 = 1.05,
-        n6 = 1.02,
-        n7 = 1.02,
-        n8 = 1.365
-    } = input;
+const CONSTANTS = {
+    DEFAULT_F1: 1.66,
+    DEFAULT_F2: 1.66,
+    COEFF_SA: 0.0077, // اضافه کاری روز
+    COEFF_SE: 0.0096, // اضافه کاری شب
+    COEFF_SD: 0.0020, // شب کاری موظف
+    MAX_HOURS_LIMIT: 250
+};
 
-    // 1. Base Salary Bi (قانون کار)
-    const Bi = dailyWage * 30.5;
+function calculateSiteSalary(Si, Tm, Tr, Ts, F1 = CONSTANTS.DEFAULT_F1, F2 = CONSTANTS.DEFAULT_F2) {
+    const totalHours = Tr + Ts;
+    const overLimitWarning = totalHours > CONSTANTS.MAX_HOURS_LIMIT;
 
-    // 2. K-CORE Multiplier K (ضرب ضرایب n2 تا n8)
-    const K = n2 * n3 * n4 * n5 * n6 * n7 * n8;
+    let lambdaHours = 0, Td = 0, Te = 0;
+    let S_base_paid = 0, Sa = 0, Se = 0, Sd = 0;
 
-    // 3. Adjusted Fee Si
-    const Si = Bi * K;
+    // حالت ۱: کارکرد روزانه بیشتر یا برابر موظفی
+    if (Tr >= Tm) {
+        lambdaHours = Tr - Tm;
+        Td = 0;
+        Te = Ts;
 
-    // 4. Overtime & Holiday Calculations
-    const hourlyRate = Bi / 176;
-    const otPay = otHours * hourlyRate * 1.4;
-    const holidayPay = holidayHours * hourlyRate * 1.5;
+        S_base_paid = Si;
+        Sa = CONSTANTS.COEFF_SA * F2 * Si * lambdaHours;
+        Se = CONSTANTS.COEFF_SE * F2 * Si * Te;
+        Sd = 0;
+    } 
+    // حالت ۲: مجموع روز و شب موظفی را پر می‌کند
+    else if (totalHours >= Tm) {
+        lambdaHours = 0;
+        Td = Tm - Tr;
+        Te = Ts - Td;
 
-    // 5. Gross Pay (جمع ناخالص)
-    const grossPay = Si + otPay + holidayPay;
+        S_base_paid = Si;
+        Sa = 0;
+        Se = CONSTANTS.COEFF_SE * F2 * Si * Te;
+        Sd = CONSTANTS.COEFF_SD * F1 * Si * Td;
+    } 
+    // حالت ۳: کسر کار
+    else {
+        lambdaHours = 0;
+        Td = Ts;
+        Te = 0;
 
-    // 6. Insurance & Tax Engine
-    const insurance30 = grossPay * 0.30; // بیمه ۳۰٪
-    const taxBase = Math.max(0, grossPay - 120000000); // معافیت ۱۲ میلیون تومانی
-    const tax10 = taxBase * 0.10; // مالیات ۱۰٪
-    const netPay = grossPay - (grossPay * 0.07) - tax10; // خالص دریافتی (کسر ۷٪ سهم کارگر)
-
-    // 7. Alert System Rules
-    let alertCode = "OK";
-    let alertMessage = "محاسبات طبیعی و بدون خطا";
-
-    if (Si < Bi) {
-        alertCode = "RED";
-        alertMessage = "هشدار قرمز: دریافتی Si کمتر از حداقل پایه Bi است";
-    } else if (workedHours < requiredHours) {
-        alertCode = "ORANGE";
-        alertMessage = "هشدار نارنجی: کارکرد کمتر از ساعات موظف";
-    } else if (otHours > 40) {
-        alertCode = "BLUE";
-        alertMessage = "هشدار آبی: اضافه‌کاری بیش از حد مجاز (۴۰ ساعت)";
-    } else if (!n3 || n3 === 1) {
-        alertCode = "YELLOW";
-        alertMessage = "هشدار زرد: ضریب n3 اعمال نشده یا خالی است";
+        const W = totalHours / Tm;
+        S_base_paid = Si * W;
+        Sa = 0;
+        Se = 0;
+        Sd = CONSTANTS.COEFF_SD * F1 * Si * Ts;
     }
 
+    const totalPayable = S_base_paid + Sa + Se + Sd;
+
     return {
-        Bi: Math.round(Bi),
-        K: Number(K.toFixed(4)),
-        Si: Math.round(Si),
-        otPay: Math.round(otPay),
-        holidayPay: Math.round(holidayPay),
-        grossPay: Math.round(grossPay),
-        insurance30: Math.round(insurance30),
-        tax10: Math.round(tax10),
-        netPay: Math.round(netPay),
-        alertCode,
-        alertMessage
+        S_base_paid: Math.round(S_base_paid),
+        Sa: Math.round(Sa),
+        Se: Math.round(Se),
+        Sd: Math.round(Sd),
+        totalPayable: Math.round(totalPayable),
+        details: {
+            totalHours,
+            lambdaHours,
+            Td,
+            Te,
+            overLimitWarning
+        }
     };
 }
 
-// تست خودکار جهت تایید در GitHub Actions
-const testResult = calculateFreeze01({
-    dailyWage: 3200000,
-    requiredHours: 176,
-    workedHours: 180,
-    otHours: 20,
-    holidayHours: 8,
-    n2: 1.05, n3: 1.15, n4: 1.08, n5: 1.05, n6: 1.02, n7: 1.02, n8: 1.365
-});
-
-console.log("=== Freeze01 K-CORE Validation Test ===");
-console.log(`Bi (پایه): ${testResult.Bi.toLocaleString()} ریال`);
-console.log(`ضریب K: ${testResult.K}`);
-console.log(`Si (حق‌الزحمه): ${testResult.Si.toLocaleString()} ریال`);
-console.log(`جمع ناخالص: ${testResult.grossPay.toLocaleString()} ریال`);
-console.log(`وضعیت هشدار: [${testResult.alertCode}] - ${testResult.alertMessage}`);
-
-if (testResult.Si >= testResult.Bi && testResult.K > 1) {
-    console.log("\n✅ تمامی محاسبات هماهنگ با K-CORE تایید شد.");
-    process.exit(0);
-} else {
-    console.error("\n❌ خطا در محاسبات هماهنگی Freeze01");
-    process.exit(1);
+// خروجی برای استفاده در app.js
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = { calculateSiteSalary };
 }
