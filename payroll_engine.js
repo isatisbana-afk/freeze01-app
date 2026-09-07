@@ -1,105 +1,82 @@
-/**
- * موتور محاسباتی جدید حقوق و مزایای عوامل مدیریت کارگاه
- * فایل: payroll_engine.js
- */
+// مرجع: سند Freeze01_Master_Architecture_Blueprint_v1.0 (بخش ۴)[span_3](start_span)[span_3](end_span)
 
-const CONSTANTS = {
-    DEFAULT_F1: 1.66,
-    DEFAULT_F2: 1.66,
-    COEFF_SA: 0.0077, // اضافه کاری روز
-    COEFF_SE: 0.0096, // اضافه کاری شب
-    COEFF_SD: 0.0020, // شب کاری موظف
-    MAX_HOURS_LIMIT: 250
-};
-
-function calculateSiteSalary(Si, Tm, Tr, Ts, F1 = CONSTANTS.DEFAULT_F1, F2 = CONSTANTS.DEFAULT_F2) {
-    const totalHours = Tr + Ts;
-    const overLimitWarning = totalHours > CONSTANTS.MAX_HOURS_LIMIT;
-
-    let lambdaHours = 0, Td = 0, Te = 0;
-    let S_base_paid = 0, Sa = 0, Se = 0, Sd = 0;
-
-    // حالت ۱: کارکرد روزانه بیشتر یا برابر موظفی
-    if (Tr >= Tm) {
-        lambdaHours = Tr - Tm;
-        Td = 0;
-        Te = Ts;
-
-        S_base_paid = Si;
-        Sa = CONSTANTS.COEFF_SA * F2 * Si * lambdaHours;
-        Se = CONSTANTS.COEFF_SE * F2 * Si * Te;
-        Sd = 0;
-    } 
-    // حالت ۲: مجموع روز و شب موظفی را پر می‌کند
-    else if (totalHours >= Tm) {
-        lambdaHours = 0;
-        Td = Tm - Tr;
-        Te = Ts - Td;
-
-        S_base_paid = Si;
-        Sa = 0;
-        Se = CONSTANTS.COEFF_SE * F2 * Si * Te;
-        Sd = CONSTANTS.COEFF_SD * F1 * Si * Td;
-    } 
-    // حالت ۳: کسر کار
-    else {
-        lambdaHours = 0;
-        Td = Ts;
-        Te = 0;
-
-        const W = totalHours / Tm;
-        S_base_paid = Si * W;
-        Sa = 0;
-        Se = 0;
-        Sd = CONSTANTS.COEFF_SD * F1 * Si * Ts;
-    }
-
-    const totalPayable = S_base_paid + Sa + Se + Sd;
-
-    return {
-        S_base_paid: Math.round(S_base_paid),
-        Sa: Math.round(Sa),
-        Se: Math.round(Se),
-        Sd: Math.round(Sd),
-        totalPayable: Math.round(totalPayable),
-        details: {
-            totalHours,
-            lambdaHours,
-            Td,
-            Te,
-            overLimitWarning
-        }
-    };
-}
-
-// خروجی برای استفاده در app.js
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { calculateSiteSalary };
-}
-// جدول ضریب رده شغلی (n1)
-const JOB_ROLES = {
-    "S01": { title: "نیروی اجرایی پایه", n1: 1.00 },
-    "S02": { title: "نیروی اجرایی", n1: 1.05 },
-    "S03": { title: "نیروی اجرایی ارشد", n1: 1.10 },
-    "S04": { title: "سرپرست", n1: 1.18 },
-    "S05": { title: "سرپرست کارگاه", n1: 1.25 },
-    "S06": { title: "مدیر بخش", n1: 1.35 },
-    "S07": { title: "مهندس ناظر", n1: 1.45 },
-    "S08": { title: "مهندس ناظر ارشد", n1: 1.60 },
-    "S09": { title: "مدیر فنی / کارشناس ارشد", n1: 1.75 },
-    "S10": { title: "مدیر پروژه", n1: 1.90 },
-    "S11": { title: "مدیر ارشد پروژه", n1: 2.10 },
-    "S12": { title: "مدیر پروژه ویژه", n1: 2.30 }
-};
-
-// تابع محاسبه خودکار Si
-function calculateSi(Bi, roleCode, envFactors = [1, 1, 1, 1, 1, 1, 1]) {
-    const role = JOB_ROLES[roleCode];
-    const n1 = role ? role.n1 : 1.00;
-    
-    // حاصل‌ضرب ضرایب محیطی (n2 * n3 * ... * n8)
-    const envProduct = envFactors.reduce((acc, val) => acc * val, 1);
-    
-    // فرمول اصلی: Si = Bi * n1 * envProduct
-    return Bi * n1 * envProduct;
+export interface CalculationInput {  
+  dailyBaseWage: number;   // مزد شغل روزانه
+  n2: number;              // محیط کارگاهی[span_4](start_span)[span_4](end_span)
+  n3: number;              // مسئولیت[span_5](start_span)[span_5](end_span)
+  n4: number;              // سختی کار[span_6](start_span)[span_6](end_span)
+  n5: number;              // پروژه‌محور[span_7](start_span)[span_7](end_span)
+  n6: number;              // تخصصی[span_8](start_span)[span_8](end_span)
+  n7: number;              // کارایی[span_9](start_span)[span_9](end_span)
+  n8: number;              // ضریب منطقه (یزد = 1.365)[span_10](start_span)[span_10](end_span)
+  workedHours: number;     // ساعات کارکرد واقعی[span_11](start_span)[span_11](end_span)
+  requiredHours: number;   // ساعات موظفی[span_12](start_span)[span_12](end_span)
+  overtimeHours: number;   // ساعات اضافه‌کاری[span_13](start_span)[span_13](end_span)
+  holidayHours: number;    // ساعات تعطیل‌کاری[span_14](start_span)[span_14](end_span)
+}  
+  
+export interface CalculationResult {  
+  Bi: number;  
+  K: number;  
+  Si: number;  
+  totalPay: number;  
+  alert: 'RED' | 'ORANGE' | 'YELLOW' | 'BLUE' | 'GREEN';  
+  alertMessage: string;  
+}  
+  
+export function calculateFreeze01(input: CalculationInput): CalculationResult {  
+  // ۱. پایه حقوق ماهانه: Bi = DailyBaseWage * 30.5[span_15](start_span)[span_15](end_span)
+  const Bi = input.dailyBaseWage * 30.5;  
+   
+  // ۲. بررسی ضریب خالی (هشدار YELLOW)[span_16](start_span)[span_16](end_span)
+  if ([input.n2, input.n3, input.n4, input.n5, input.n6, input.n7].some(n => n === undefined || n === null || n === 0)) {  
+    return { 
+      Bi, K: 0, Si: 0, totalPay: 0, 
+      alert: 'YELLOW', 
+      alertMessage: 'یکی از ضرایب هفت‌گانه ثبت نشده یا خالی است.' 
+    };  
+  }  
+  
+  // ۳. محاسبه ضریب جامع K و حقوق Freeze01 (Si)[span_17](start_span)[span_17](end_span)
+  const K = input.n2 * input.n3 * input.n4 * input.n5 * input.n6 * input.n7 * (input.n8 || 1.365);  
+  const Si = Bi * K;  
+   
+  // ۴. محاسبه اضافه‌کاری و تعطیل‌کاری[span_18](start_span)[span_18](end_span)
+  const otPay = input.overtimeHours * (Bi / 176) * 1.4;  
+  const holidayPay = input.holidayHours * (Bi / 176) * 1.5;  
+  const totalPay = Si + otPay + holidayPay;  
+  
+  // ۵. ارزیابی هشدار قرمز (RED): Si < Bi[span_19](start_span)[span_19](end_span)
+  if (Si < Bi) {  
+    return { 
+      Bi, K, Si, totalPay, 
+      alert: 'RED', 
+      alertMessage: 'خطای حقوق: حقوق محاسباتی Si کمتر از حقوق پایه Bi است.' 
+    };  
+  }  
+  
+  // ۶. ارزیابی هشدار نارنجی (ORANGE): کارکرد کمتر از موظفی[span_20](start_span)[span_20](end_span)
+  if (input.workedHours < input.requiredHours) {  
+    return { 
+      Bi, K, Si, totalPay, 
+      alert: 'ORANGE', 
+      alertMessage: 'هشدار: کارکرد ثبت‌شده کمتر از ساعات موظفی ماهانه است.' 
+    };  
+  }  
+  
+  // ۷. ارزیابی هشدار آبی (BLUE): اضافه‌کاری بیش از ۶۰ ساعت[span_21](start_span)[span_21](end_span)
+  if (input.overtimeHours > 60) {  
+    return { 
+      Bi, K, Si, totalPay, 
+      alert: 'BLUE', 
+      alertMessage: 'تذکر: ساعات اضافه‌کاری بیش از سقف استاندارد (۶۰ ساعت) است.' 
+    };  
+  }  
+  
+  // ۸. وضعیت سبز (GREEN): محاسبه نرمال و بدون مغایرت[span_22](start_span)[span_22](end_span)
+  return { 
+    Bi, K, Si, totalPay, 
+    alert: 'GREEN', 
+    alertMessage: 'وضعیت محاسبه نرمال و مورد تأیید است.' 
+  };  
 }
